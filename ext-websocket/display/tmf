@@ -1,0 +1,147 @@
+{"recipients":["Resolver"],"sseq":"Main","action":{"Construct":{"algebra_name":"adem","module_name":"tmf2"}}}
+{"recipients":["Resolver"],"sseq":"Main","action":{"Resolve":{"max_degree":260}}}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":0,"y":0,"idx":0,"name":""}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddPermanentClass":{"x":0,"y":0,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":8,"y":4,"idx":0,"name":"w_1"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"action":{"AddProductType":{"permanent":true,"x":8,"y":4,"class":[1],"name":"w_1"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"action":{"AddProductType":{"permanent":true,"x":8,"y":3,"class":[1],"name":"c_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":8,"y":3,"idx":0,"name":"c_0 "}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":12,"y":3,"idx":0,"name":"\\alpha"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":11,"y":5,"idx":0,"name":"h_2 w_1"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":20,"y":7,"idx":0,"name":"w_1 \\alpha"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"short-note":"Toda bracket calculation","note":"The first three cells of $tmf$ are in degree $0$, $8$ and $12$ with attaching maps $\\sigma$ and $\\nu$. We can consider the &quot;$E_1$&quot; page of the Adams spectral sequence, which is three copies of the Adams spectral sequence for the spheres in degrees $0, 8, 12$. Call the generators of the copies $x_0, x_8$ and $x_{12}$.\n To prove this differential, we have to show that in $C\\sigma$, there is a hidden $2$-extension from $h_0^2 h_2 x_8$ to $P h_2 x_0$. If this were true, then since $d_1(x_{12}) = h_2 x_8$, there must be a differential from $h_0^3 x_{12}$ to $P h_2 x_0$. We can write $h_2 x_8 = \\langle \\iota, \\sigma, \\nu \\rangle$, where $\\iota: S^0 \\hookrightarrow C\\sigma$ is the inclusion of the bottom cell. So eight times this is $\\langle \\iota, \\sigma, \\nu \\rangle 8 = \\iota \\langle \\sigma, \\nu, 8\\rangle$. What is left is then a standard Toda bracket calculation in the homotopy groups of spheres.\n Alternatively, one can &quot;cheat&quot; by starting with the differential $d_2(f_0) = h_0^2 e$ in the Adams spectral sequence for the sphere and then propagate backwards along products.","action":{"AddProductDifferential":{"source":{"permanent":false,"x":12,"y":3,"class":[1],"name":"\\alpha"},"target":{"permanent":false,"x":11,"y":5,"class":[1],"name":"h_2 w_1"}}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"action":{"AddProductType":{"permanent":true,"x":12,"y":6,"class":[1],"name":"h_0 c_6"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":14,"y":4,"idx":0,"name":"d_0"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"action":{"AddProductType":{"permanent":true,"x":14,"y":4,"class":[1],"name":"d_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":15,"y":3,"idx":0,"name":"\\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":14,"y":5,"idx":0,"name":"h_0 d_0"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"short-note":"$h_0$ division","action":{"AddProductDifferential":{"source":{"permanent":false,"x":15,"y":3,"class":[1],"name":"\\beta"},"target":{"permanent":false,"x":14,"y":5,"class":[1],"name":"h_0 d_0"}}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":16,"y":7,"idx":0,"name":"w_1 c_0 "}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":17,"y":4,"idx":0,"name":"e_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":15,"y":5,"idx":0,"name":"h_1 d_0"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"short-note":"hidden $\\nu$ extension","note":"We first claim there is a hidden $\\nu$ extension from $h_2^2$ to $h_1 c_0$. Indeed, in the Adams spectral sequence for the sphere, $h_1 c_0$ represents $\\nu^3 + \\eta^2 \\sigma$. In $\\pi_*(tmf)$, we know $\\sigma = 0$, so $h_1 c_0$ represents $\\nu^3$.\n Given this, we also have a hidden $\\nu$ extension from $h_2^2 w_2$ to $w_1 h_1 c_0$. Since $h_2^2 w_1$ is hit by a differential, so must $w_1 h_1 c_0$, and indeed it is hit by $h_2$ times the class that hits $h_2^2 w_1$. Note that since $4\\nu = \\eta^3$, this also implies there is a hidden $\\eta$ extension from $h_1 d_0$ to $w_1 c_0$.","action":{"AddProductDifferential":{"source":{"permanent":false,"x":17,"y":4,"class":[1],"name":"e_0"},"target":{"permanent":false,"x":16,"y":7,"class":[1],"name":"w_1 c_0"}}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":20,"y":4,"idx":0,"name":"g"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"action":{"AddProductType":{"permanent":true,"x":20,"y":4,"class":[1],"name":"g"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":24,"y":6,"idx":0,"name":"\\alpha^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":22,"y":8,"idx":0,"name":"w_1 d_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":23,"y":9,"idx":0,"name":"h_1 w_1 d_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":29,"y":9,"idx":0,"name":"h_1 w_1 g"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"short-note":"Propagate $d_2(\\alpha) = h_2 w_1$ with Steenrod action.","note":"Alternatively, it is a classical calculation that there is a hidden $\\eta$ extension from $h_1 g$ to $w_1 d_0$, so $h_1 w_1 d_0$ is divisible by $\\eta^3 = 4\\nu$, and in particular by $4$. But there are no classes with lower Adams filtration. So $h_1 w_1 d_0$ must be killed by a differential.","action":{"AddProductDifferential":{"source":{"permanent":false,"x":24,"y":6,"class":[1],"name":"\\alpha^2"},"target":{"permanent":false,"x":23,"y":9,"class":[1],"name":"h_1 w_1 d_0"}}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"action":{"AddProductType":{"permanent":true,"x":24,"y":7,"class":[1],"name":"h_0 \\alpha^2"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"note":"Any differential must hit an $h_0$-torsion class, of which there are none.","action":{"AddProductType":{"permanent":true,"x":25,"y":5,"class":[1],"name":"\\gamma"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":30,"y":12,"idx":0,"name":"w_1^2 d_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":31,"y":8,"idx":0,"name":"d_0 e_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":12,"y":6,"idx":0,"name":"h_0 c_6"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":25,"y":5,"idx":0,"name":"\\gamma"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":24,"y":7,"idx":0,"name":"h_0 \\alpha^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":28,"y":8,"idx":0,"name":"w_1 g"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":36,"y":12,"idx":1,"name":"w_1 d_0^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":37,"y":8,"idx":0,"name":"e_0 g"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":34,"y":8,"idx":0,"name":"d_0 g"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":27,"y":6,"idx":0,"name":"\\alpha\\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"note":"To show $\\alpha\\beta$ is permanent, it suffices to show that $w_1 \\alpha\\beta$ is permanent, since the unique possible target for the differential is $w_1$-periodic. To show this, we observe that there is a hidden $\\eta^2$ extension from $d_0 g$ to $w_1 d_0^2$, since there is one from $g$ to $w_1 d_0$. For this to be possible, there must be a hidden $\\eta$ extension from $w_1 \\alpha \\beta$ to $w_1 d_0^2$, and in particular $w_1 \\alpha \\beta$ must be permanent. This argument also shows that there is a hidden $\\eta$ extension from $\\alpha \\beta$ to $d_0^2$.","action":{"AddPermanentClass":{"x":27,"y":6,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"Steenrod action on $d_2(\\beta)$","action":{"AddDifferential":{"r":3,"x":30,"y":6,"source":[1],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"hidden $\\eta$ extension","note":"The hidden $\\eta$ extension from $h_1 g$ to $w_1 d_0$ gives a hidden $\\eta$ extension from $h_1 w_1 g$ to $w_1^2 d_0$. Since $h_1 w_1 g$ is hit by a differential, so must $w_1^2 d_0.","action":{"AddDifferential":{"r":4,"x":31,"y":8,"source":[1],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"$d_0$ division","note":"Alternatively, there is a hidden $\\eta^2$ extension from $d_0 g$ to $w_1 d_0^2$. But we know that $d_0$ is killed by $\\eta^2$ since $d_3(e_0) = w_1 c_0$, so $w_1 d_0^2$ must be hit by a differential. The only class that can hit it is $g e_0$, as one would expect.","action":{"AddDifferential":{"r":4,"x":37,"y":8,"source":[1],"target":[0,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":30,"y":6,"idx":0,"name":"\\beta^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":32,"y":7,"class":[0,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":32,"y":7,"class":[1,0]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddPermanentClass":{"x":36,"y":10,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":0,"y":1,"idx":0,"name":"h_0 "}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":0,"y":2,"idx":0,"name":"h_0^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":14,"y":6,"idx":0,"name":"h_0^2 d_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":15,"y":4,"idx":0,"name":"h_0 \\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":17,"y":5,"idx":0,"name":"h_0 e_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":17,"y":6,"idx":0,"name":"h_0^2 e_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":1,"y":1,"idx":0,"name":"h_1 "}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":25,"y":8,"idx":0,"name":"w_1 e_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":2,"y":2,"idx":0,"name":"h_1^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":35,"y":10,"idx":0,"name":"w_1 \\alpha\\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":3,"y":1,"idx":0,"name":"h_2 "}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":3,"y":2,"idx":0,"name":"h_0 h_2 "}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":3,"y":3,"idx":0,"name":"h_1^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"Hidden $\\eta$ extension","note":"There is a hidden $\\eta^2$ extension from $g^2$ to $w_1 d_0 g$ coming from multiplying that from $g$ to $w_1 d_0$, and there is a hidden $\\eta$ extension from $w_1 d_0 g$ to $w_1^2 \\alpha\\beta$ by multiplying that from $d_0 g$ to $w_1 \\alpha\\beta$. So $w_1^2 \\alpha\\beta$ is $\\eta^3$ divisible, hence $4$-divisible, hence vanishes.","action":{"AddDifferential":{"r":4,"x":44,"y":10,"source":[1],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":43,"y":14,"idx":0,"name":"w_1^2 \\alpha \\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"Hidden $\\eta$ extension","note":"Same as previous calculations. Multiply the hidden extension from $g$ to $w_1 d_0$ by $\\alpha \\beta$ to get a hidden extension from $g\\alpha \\beta$ to $w_1 d_0 \\alpha \\beta$, then use that $\\eta^2 \\alpha\\beta$ vanishes.","action":{"AddDifferential":{"r":4,"x":50,"y":10,"source":[1,0],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"Necessary for previous differential","action":{"AddDifferential":{"r":3,"x":49,"y":9,"source":[1],"target":[0,1]}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"short-note":"Necessary for previous differential","action":{"AddProductDifferential":{"source":{"permanent":false,"x":48,"y":8,"class":[1],"name":"w_2"},"target":{"permanent":false,"x":47,"y":10,"class":[1],"name":"g \\alpha \\beta"}}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"$d_0$ division","action":{"AddDifferential":{"r":4,"x":48,"y":9,"source":[1],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddPermanentClass":{"x":48,"y":10,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"$g$ division","note":"Alternatively, this follows from a hidden $\\eta$-extension calculation. As before there is a hidden $\\eta^2$ extension from $g\\gamma$ to $w_1 d_0 \\gamma$. This differential would follow if we can show that there is a non-zero hidden $\\eta$ extension from $w_1 d_0 \\gamma$. The hidden $\\eta$ extension must be equal to $x_{48,15}^{(2)}$ since that is the only element with zero $h_0$ product. So it suffices to show that $w_1 d_0 \\gamma$ admits a non-zero $\\eta^2$ extension, and this follows from the hidden $\\eta^2$ extension of $d_0$.","action":{"AddDifferential":{"r":4,"x":49,"y":11,"source":[1],"target":[0,0,1]}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"action":{"AddProductType":{"permanent":false,"x":45,"y":9,"class":[1],"name":"\\beta^3"}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"action":{"AddProductType":{"permanent":false,"x":50,"y":10,"class":[1,1],"name":"\\gamma^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":32,"y":10,"idx":0,"name":"w_1 \\alpha^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":33,"y":9,"idx":0,"name":"w_1 \\gamma"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":39,"y":9,"idx":0,"name":"\\alpha^2 \\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":40,"y":8,"idx":0,"name":"g^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":41,"y":10,"idx":0,"name":"d_0 \\alpha\\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":42,"y":12,"idx":0,"name":"w_1 d_0 g"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":44,"y":10,"idx":0,"name":"\\alpha^2 g"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":45,"y":9,"idx":0,"name":"g\\gamma"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":45,"y":9,"idx":0,"name":"w_1 d_0 \\gamma"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":47,"y":10,"idx":0,"name":"g \\alpha \\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":47,"y":13,"idx":0,"name":"w_1 \\alpha^2 \\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":48,"y":10,"idx":0,"name":"h_0^2 w_2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":48,"y":11,"idx":0,"name":"h_0 w_2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":48,"y":12,"idx":0,"name":"h_0^2 w_2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":48,"y":12,"idx":1,"name":"w_1 g^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":48,"y":8,"idx":0,"name":"w_2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":48,"y":9,"idx":0,"name":"h_0 w_2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":49,"y":14,"idx":0,"name":"w_1 d_0 \\alpha \\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":49,"y":9,"idx":0,"name":"h_1 w_2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":49,"y":11,"idx":0,"name":"\\alpha^2 \\gamma"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":50,"y":10,"idx":0,"name":"h_1^2 w_2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":51,"y":19,"idx":0,"name":"h_2 w_2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":54,"y":15,"idx":0,"name":"w_1 \\alpha d_0 g"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":55,"y":11,"idx":0,"name":"\\gamma \\beta^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":56,"y":11,"idx":0,"name":"w_2 c_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":56,"y":13,"idx":0,"name":"h_0 w_1 w_2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":56,"y":13,"idx":1,"name":"e_0 \\alpha^2 \\beta"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":60,"y":14,"idx":0,"name":"w_2 h_0 c_6"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":70,"y":14,"idx":0,"name":"\\gamma \\beta^3"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":72,"y":14,"idx":0,"name":"w_2 \\alpha^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":72,"y":15,"idx":0,"name":"h_0 w_2 \\alpha^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":75,"y":15,"idx":1,"name":"g \\gamma \\beta^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":84,"y":18,"idx":0,"name":"h_0 w_2 \\alpha^3"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":95,"y":19,"idx":0,"name":"\\gamma^2 \\beta^3"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":96,"y":16,"idx":0,"name":"w_2^2"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":126,"y":28,"idx":0,"name":"w_2^2 w_1^2 d_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":127,"y":24,"idx":0,"name":"w_2^2 d_0 e_0"}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"SetClassName":{"x":192,"y":32,"idx":0,"name":"w_2^4"}},"sseq":"Main"}
+{"recipients":["Sseq"],"note":"By Moss' convergence theorem, this class represents $\\langle \\{g\\}, \\{\\alpha \\beta\\}, \\nu\\rangle$. Alternatively, the unique possible target of the differential is $w_1$-periodic but this class is killed by $w_1^2$.","action":{"AddPermanentClass":{"x":51,"y":9,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"$d_0$ division","action":{"AddDifferential":{"r":4,"x":55,"y":11,"source":[1],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":56,"y":11,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":56,"y":13,"class":[1,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":60,"y":14,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":72,"y":15,"class":[1,0]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":80,"y":15,"class":[1,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddPermanentClass":{"x":84,"y":18,"class":[1,0]}},"sseq":"Main"}
+{"recipients":["Sseq","Resolver"],"short-note":"Steenrod operation on $d_2(w_2)$","action":{"AddProductDifferential":{"source":{"permanent":false,"x":96,"y":16,"class":[1],"name":"w_2^2"},"target":{"permanent":false,"x":95,"y":19,"class":[1],"name":"\\gamma^2 \\beta^3"}}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddPermanentClass":{"x":96,"y":17,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"note":"These represent $\\langle \\{\\gamma\\}, \\{\\gamma \\beta^3\\}, \\eta \\rangle$ and $\\langle \\{g \\gamma \\beta^2\\}, \\{g\\}, \\nu\\rangle$ respectively.","action":{"AddPermanentClass":{"x":97,"y":17,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddPermanentClass":{"x":99,"y":17,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":104,"y":19,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":104,"y":20,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":108,"y":22,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":110,"y":20,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":116,"y":21,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddPermanentClass":{"x":120,"y":23,"class":[0,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"This is $\\langle \\{\\beta^3\\}, \\{\\gamma^2\\}, \\{\\alpha \\beta \\} \\rangle$","action":{"AddPermanentClass":{"x":123,"y":22,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"note":"$d_4 (w_2^2 d_0 e_0) = d_4 \\langle \\beta^3, \\gamma^2, d_0 e_0\\rangle = \\langle \\beta^3, \\gamma^2, d_4 (d_0 e_0)\\rangle = \\langle \\beta^3, \\gamma^2, w_1^2 d_0\\rangle = w_2^2 w_1^2 d_0$ with no indeterminacy.","action":{"AddDifferential":{"r":4,"x":127,"y":24,"source":[1],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"note":"$d_0$ division, then either propagate $d_4$ with $\\langle \\{\\beta^3\\}, \\{\\gamma^2\\}, -\\rangle$ or $\\langle \\{\\gamma^2\\}, \\{\\beta^3\\}, -\\rangle$.","action":{"AddDifferential":{"r":4,"x":133,"y":24,"source":[1],"target":[0,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddDifferential":{"r":4,"x":140,"y":26,"source":[1],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddDifferential":{"r":4,"x":144,"y":25,"source":[1],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddDifferential":{"r":4,"x":145,"y":27,"source":[1],"target":[1,1,0]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddDifferential":{"r":4,"x":146,"y":26,"source":[0,1],"target":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"short-note":"$\\langle \\{\\beta^3\\},\\{\\gamma^2\\}, \\{w_2 h_2 \\} \\rangle$","action":{"AddPermanentClass":{"x":147,"y":25,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":128,"y":23,"class":[0,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":128,"y":23,"class":[1,0]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":132,"y":26,"class":[1,0]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":144,"y":26,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":152,"y":27,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":152,"y":29,"class":[0,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":156,"y":30,"class":[1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":168,"y":31,"class":[0,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"skip":true,"action":{"AddPermanentClass":{"x":176,"y":31,"class":[1,1]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddPermanentClass":{"x":180,"y":34,"class":[1,0]}},"sseq":"Main"}
+{"recipients":["Sseq"],"action":{"AddPermanentClass":{"x":192,"y":32,"class":[1]}},"sseq":"Main"}

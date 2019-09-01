@@ -170,8 +170,8 @@ class Display extends EventEmitter {
     }
 
     _initializeScale(){
-        this.xScaleInit.domain([this.sseq.minDegree - this.domainOffset, this.sseq.maxX + this.domainOffset]);
-        this.yScaleInit.domain([0 - this.domainOffset, this.sseq.maxY + this.domainOffset]);
+        this.xScaleInit.domain([this.sseq.minDegree / 5- this.domainOffset, this.sseq.maxX / 5 - this.domainOffset]);
+        this.yScaleInit.domain([0 - this.domainOffset, this.sseq.maxY / 5 - this.domainOffset]);
     }
 
     nextPage(){
@@ -509,12 +509,24 @@ class Display extends EventEmitter {
                     context.fillStyle = NODE_COLOR[this.sseq.classState.get(x,y)];
                 }
 
+                if (y > x / 2 + 2) {
+                    context.opacity = 1 - (y - x / 2 - 2) / 5;
+                }
+
                 let num = classes.length;
                 for (let i = 0; i < num; i++) {
                     let [x_, y_] = this.sseqToCanvas(x, y, i, num);
 
                     context.beginPath();
-                    context.arc(x_, y_, size * 0.1, 0, 2 * Math.PI);
+
+                    if (y > x / 2 + 2) {
+                        context.opacity = Math.sqrt(1 - (y - x / 2 - 2) / 5);
+                        context.arc(x_, y_, size * 0.1 * context.opacity, 0, 2 * Math.PI);
+                    } else {
+                        context.opacity = 1;
+                        context.arc(x_, y_, size * 0.1, 0, 2 * Math.PI);
+                    }
+
                     context.fill();
                 }
             }
@@ -554,6 +566,9 @@ class Display extends EventEmitter {
                             if (matrix[i][j] != 0) {
                                 let [sourceX, sourceY] = this.sseqToCanvas(x, y, i, sourceDim);
                                 let [targetX, targetY] = this.sseqToCanvas(x + mult.x, y + mult.y, j, targetDim);
+                                if (name == "h_0" && y == x / 2 + 5) {
+                                    [targetX, targetY] = this.sseqToCanvas(x + mult.x, 90, j, targetDim);
+                                }
 
                                 context.beginPath();
                                 if (style.bend != 0) {

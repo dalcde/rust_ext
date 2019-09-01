@@ -487,7 +487,9 @@ export class ExtSseq extends EventEmitter {
         for (let x of PERMANENT_BIVECS) {
             permanent[x] = this[x].data;
         }
-        permanent.name = prompt("Name of spectral sequence");
+        permanent.maxX = 220;
+        permanent.maxY = 88;
+        permanent.name = "$tmf$";
         lines.push(deflate(JSON.stringify(permanent)));
 
         this.send({
@@ -531,6 +533,9 @@ export class ExtSseq extends EventEmitter {
             lines.push(this.getChangingJSON());
         }
         await new Promise(r => window.onComplete.push(r));
+        // Manually add in w_2^4 products for tmf
+        this.permanentClasses.set(219, 38, [1]);
+        this.classState.set(219, 38, "Done");
         lines.push(this.getChangingJSON());
 
         let filename = prompt("History file name");

@@ -816,6 +816,12 @@ impl Sseq {
     /// This function should only be called when everything to the left and bottom of (x, y)
     /// has been defined.
     pub fn set_class(&mut self, x : i32, y : i32, num : usize) {
+        if y > x / 2 + 6 {
+            return;
+        }
+        if x > 230 {
+            return;
+        }
         if x == self.min_x {
             self.classes[self.min_x - 1].push(0);
         }
@@ -852,6 +858,13 @@ impl Sseq {
     }
 
     pub fn set_class_name(&mut self, x : i32, y : i32, idx : usize, name : String) {
+        if y > x / 2 + 6 {
+            return;
+        }
+        if x > 230 {
+            return;
+        }
+
         self.class_names[x][y][idx] = name;
         self.send_class_data(x, y);
         for prod in self.products.read().unwrap().iter() {
@@ -1029,8 +1042,17 @@ impl Sseq {
     }
 
     pub fn add_product(&mut self, name : &String, x : i32, y : i32, mult_x : i32, mult_y : i32, left : bool, matrix : &Vec<Vec<u32>>) {
+        if y > x / 2 + 6 {
+            return;
+        }
+        if x > 230 {
+            return;
+        }
+
         assert!(self.class_defined(x, y));
-        assert!(self.class_defined(x + mult_x, y + mult_y));
+        if !self.class_defined(x + mult_x, y + mult_y) {
+            return;
+        }
         let mut products = self.products.write().unwrap();
         let idx : usize =
             match self.product_name_to_index.get(name) {

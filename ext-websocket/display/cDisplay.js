@@ -79,8 +79,8 @@ export class CalculationDisplay extends SidebarDisplay {
     }
 
     tour() {
-        const DISPLAY_IDX = 3;
-        const SELECT_CLASS = [0, 1];
+        const DISPLAY_IDX = 4;
+        const SELECT_CLASS = [20, 7];
 
         let updateState = (selectClass, tab, lastPage) => {
             let idx = lastPage ? this.sseqData.length : DISPLAY_IDX;
