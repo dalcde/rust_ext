@@ -368,7 +368,7 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
 
                 let (sender, new_receiver) = mpsc::channel();
 
-                let handle = thread::spawn(move || {
+                let handle = thread::Builder::new().name(format!("Delta_{}, s = {}", i, s)).spawn(move || {
                     for t in 0 ..= 2 * t {
                         if let Some(recv) = &last_receiver {
                             recv.recv().unwrap();
@@ -403,7 +403,7 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
                     }
                 });
                 last_receiver = Some(new_receiver);
-                handles.push_back(handle);
+                handles.push_back(handle.unwrap());
             }
             for handle in handles.into_iter() {
                 handle.join().unwrap();
