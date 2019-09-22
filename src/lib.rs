@@ -375,9 +375,19 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
                         }
                         let num_gens = source.number_of_gens_in_degree(t);
 
-                        let mut output_matrix = Matrix::new(p, num_gens, target.dimension(t));
+                        let fx_dim = target.dimension(t);
+                        let fdx_dim = dtarget_module.dimension(t);
 
-                        let mut result = FpVector::new(p, dtarget_module.dimension(t));
+                        if fx_dim == 0 || fdx_dim == 0 || num_gens == 0 {
+                            let mut lock = map.lock();
+                            map.extend_by_zero(&lock, t);
+                            *lock += 1;
+                            sender.send(()).unwrap();
+                            continue;
+                        }
+
+                        let mut output_matrix = Matrix::new(p, num_gens, fx_dim);
+                        let mut result = FpVector::new(p, fdx_dim);
                         for j in 0 .. num_gens {
                             if let Some(m) = &prev_delta {
                                 // Δ_{i-1} x
