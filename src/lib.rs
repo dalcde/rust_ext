@@ -37,7 +37,6 @@ use std::collections::VecDeque;
 use serde_json::value::Value;
 
 use std::{thread, thread::JoinHandle, sync::mpsc};
-const NUM_THREADS : usize = 2;
 
 pub struct Config {
     pub module_paths : Vec<PathBuf>,
@@ -241,11 +240,12 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
     let bundle = construct_from_json(k, "adem".to_string()).unwrap();
     let resolution = bundle.resolution.read().unwrap();
     let p = 2;
+    let num_threads = query_with_default_no_default_indicated("Number of threads", 2, |x : usize| Ok(x));
 
     loop {
-        let x : i32= query_with_default_no_default_indicated("t - s", 200, |x : i32| Ok(x));
-        let s : u32 = query_with_default_no_default_indicated("s", 200, |x : u32| Ok(x));
-        let idx : usize = query_with_default_no_default_indicated("idx", 200, |x : usize| Ok(x));
+        let x : i32= query_with_default_no_default_indicated("t - s", 8, |x : i32| Ok(x));
+        let s : u32 = query_with_default_no_default_indicated("s", 3, |x : u32| Ok(x));
+        let idx : usize = query_with_default_no_default_indicated("idx", 0, |x : usize| Ok(x));
 
         let t = s as i32 + x;
         print!("Resolving ext: ");
@@ -312,24 +312,10 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
 
         println!("Computing Steenrod operations: ");
         let start = Instant::now();
-        let f = ResolutionHomomorphism::new("".to_string(), Arc::downgrade(&resolution.inner), Arc::downgrade(&square), 0, 0);
-        let mut mat = Matrix::new(p, 1, 1);
-        mat[0].set_entry(0, 1);
-        f.extend_step(0, 0, Some(&mut mat));
-
-        f.extend(2 * s, 2 * t);
-
-        {
-            let final_map = f.get_map(2 * s);
-            let num_gens = resolution.inner.number_of_gens_in_bidegree(2 * s, 2 * t);
-
-            println!("Sq^{} x_{{{}, {}}}^({}) = [{}] ({:?})", s, t-s as i32, s, idx, (0 .. num_gens).map(|i| format!("{}", final_map.output(2 * t, i).entry(0))).collect::<Vec<_>>().join(", "), start.elapsed());
-        }
 
         let mut delta = Vec::with_capacity(s as usize);
-        delta.push(f.to_chain_maps().into_iter().map(|x| Arc::new(x)).collect::<Vec<_>>());
 
-        for i in 1 ..= s {
+        for i in 0 ..= s {
             let mut maps : Vec<Arc<FreeModuleHomomorphism<_>>> = Vec::with_capacity(2 * s as usize - 1);
 
             for s in 0 ..= 2 * s - i {
@@ -342,21 +328,26 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
             delta.push(maps);
         }
 
-        let delta = delta;
-
-        // We have computed Δ_0. We now compute Δ_i for all i.
-        //
         // We use the formula d Δ_i + Δ_i d = Δ_{i-1} + τΔ_{i-1}
-        for i in 1 ..= s {
+        for i in 0 ..= s {
             // Δ_i is a map C_s -> C_{s + i}. So to hit C_{2s}, we only need to compute up to 2
             // * s - i
             let start = Instant::now();
 
-            let mut handles : VecDeque<JoinHandle<()>> = VecDeque::with_capacity(NUM_THREADS);
+            let mut handles : VecDeque<JoinHandle<()>> = VecDeque::with_capacity(num_threads);
             let mut last_receiver : Option<mpsc::Receiver<()>> = None;
 
             for s in 0 ..= 2 * s - i {
-                if handles.len() == NUM_THREADS {
+                if i == 0 && s == 0 {
+                    let map = &delta[0][0];
+                    let mut lock = map.lock();
+                    map.add_generators_from_matrix_rows(&lock, 0, &mut Matrix::from_vec(p, &[vec![1]]), 0, 0);
+                    *lock += 1;
+                    map.extend_by_zero(&lock, 2 * t);
+                    continue;
+                }
+
+                if handles.len() == num_threads {
                     handles.pop_front().unwrap().join().unwrap();
                 }
 
@@ -373,7 +364,7 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
                 let map = Arc::clone(&delta[i as usize][s as usize]);
                 let prev_map = match s { 0 => None, _ => Some(Arc::clone(&delta[i as usize][s as usize - 1])) };
 
-                let prev_delta = Arc::clone(&delta[i as usize - 1][s as usize]);
+                let prev_delta = match i { 0 => None, _ => Some(Arc::clone(&delta[i as usize - 1][s as usize])) };
 
                 let (sender, new_receiver) = mpsc::channel();
 
@@ -388,12 +379,14 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
 
                         let mut result = FpVector::new(p, dtarget_module.dimension(t));
                         for j in 0 .. num_gens {
-                            // Δ_{i-1} x
-                            let prevd = prev_delta.output(t, j);
+                            if let Some(m) = &prev_delta {
+                                // Δ_{i-1} x
+                                let prevd = m.output(t, j);
 
-                            // τ Δ_{i-1}x
-                            square.swap(&mut result, prevd, s + i as u32 - 1, t);
-                            result.add(prevd, 1);
+                                // τ Δ_{i-1}x
+                                square.swap(&mut result, prevd, s + i as u32 - 1, t);
+                                result.add(prevd, 1);
+                            }
 
                             if let Some(m) = &prev_map {
                                 let dx = d_res.output(t, j);
