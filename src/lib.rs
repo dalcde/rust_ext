@@ -33,7 +33,11 @@ use std::error::Error;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
 use std::time::Instant;
+use std::collections::VecDeque;
 use serde_json::value::Value;
+
+use std::{thread, thread::JoinHandle, sync::mpsc};
+const NUM_THREADS : usize = 2;
 
 pub struct Config {
     pub module_paths : Vec<PathBuf>,
@@ -323,7 +327,22 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
         }
 
         let mut delta = Vec::with_capacity(s as usize);
-        delta.push(f.to_chain_maps());
+        delta.push(f.to_chain_maps().into_iter().map(|x| Arc::new(x)).collect::<Vec<_>>());
+
+        for i in 1 ..= s {
+            let mut maps : Vec<Arc<FreeModuleHomomorphism<_>>> = Vec::with_capacity(2 * s as usize - 1);
+
+            for s in 0 ..= 2 * s - i {
+                let source = resolution.inner.module(s);
+                let target = square.module(s + i);
+
+                let map = FreeModuleHomomorphism::new(Arc::clone(&source), Arc::clone(&target), 0);
+                maps.push(Arc::new(map));
+            }
+            delta.push(maps);
+        }
+
+        let delta = delta;
 
         // We have computed Δ_0. We now compute Δ_i for all i.
         //
@@ -333,51 +352,72 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
             // * s - i
             let start = Instant::now();
 
-            let mut maps : Vec<FreeModuleHomomorphism<_>> = Vec::with_capacity(2 * s as usize - 1);
+            let mut handles : VecDeque<JoinHandle<()>> = VecDeque::with_capacity(NUM_THREADS);
+            let mut last_receiver : Option<mpsc::Receiver<()>> = None;
+
             for s in 0 ..= 2 * s - i {
+                if handles.len() == NUM_THREADS {
+                    handles.pop_front().unwrap().join().unwrap();
+                }
+
+                let square = Arc::clone(&square);
+
                 let source = resolution.inner.module(s);
                 let target = square.module(s + i);
 
-                let dtarget = square.module(s + i - 1);
+                let dtarget_module = square.module(s + i - 1);
 
                 let d_res = resolution.inner.differential(s);
+                let d_target = square.differential(s + i as u32);
 
-                let map = FreeModuleHomomorphism::new(Arc::clone(&source), Arc::clone(&target), 0);
-                let prev_delta = &delta[i as usize - 1][s as usize];
+                let map = Arc::clone(&delta[i as usize][s as usize]);
+                let prev_map = match s { 0 => None, _ => Some(Arc::clone(&delta[i as usize][s as usize - 1])) };
 
-                for t in 0 ..= 2 * t {
-                    let num_gens = source.number_of_gens_in_degree(t);
+                let prev_delta = Arc::clone(&delta[i as usize - 1][s as usize]);
 
-                    let mut output_matrix = Matrix::new(p, num_gens, target.dimension(t));
+                let (sender, new_receiver) = mpsc::channel();
 
-                    let mut result = FpVector::new(p, dtarget.dimension(t));
-                    for j in 0 .. num_gens {
-                        // Δ_{i-1} x
-                        let prevd = prev_delta.output(t, j);
-
-                        // τ Δ_{i-1}x
-                        square.swap(&mut result, prevd, s + i as u32 - 1, t);
-                        result.add(prevd, 1);
-
-                        if s > 0 {
-                            let dx = d_res.output(t, j);
-                            maps.last().unwrap().apply(&mut result, 1, t, dx);
+                let handle = thread::spawn(move || {
+                    for t in 0 ..= 2 * t {
+                        if let Some(recv) = &last_receiver {
+                            recv.recv().unwrap();
                         }
-                        square.differential(s + i as u32).apply_quasi_inverse(&mut output_matrix[j], t, &result);
+                        let num_gens = source.number_of_gens_in_degree(t);
 
-                        result.set_to_zero();
+                        let mut output_matrix = Matrix::new(p, num_gens, target.dimension(t));
+
+                        let mut result = FpVector::new(p, dtarget_module.dimension(t));
+                        for j in 0 .. num_gens {
+                            // Δ_{i-1} x
+                            let prevd = prev_delta.output(t, j);
+
+                            // τ Δ_{i-1}x
+                            square.swap(&mut result, prevd, s + i as u32 - 1, t);
+                            result.add(prevd, 1);
+
+                            if let Some(m) = &prev_map {
+                                let dx = d_res.output(t, j);
+                                m.apply(&mut result, 1, t, dx);
+                            }
+                            d_target.apply_quasi_inverse(&mut output_matrix[j], t, &result);
+
+                            result.set_to_zero();
+                        }
+                        let mut lock = map.lock();
+                        map.add_generators_from_matrix_rows(&lock, t, &mut output_matrix, 0, 0);
+                        *lock += 1;
+                        sender.send(()).unwrap();
                     }
-                    let mut lock = map.lock();
-                    map.add_generators_from_matrix_rows(&lock, t, &mut output_matrix, 0, 0);
-                    *lock += 1;
-                }
-                maps.push(map);
+                });
+                last_receiver = Some(new_receiver);
+                handles.push_back(handle);
             }
-            let final_map = maps.last().unwrap();
+            for handle in handles.into_iter() {
+                handle.join().unwrap();
+            }
+            let final_map = &delta[i as usize][(2 * s - i) as usize];
             let num_gens = resolution.inner.number_of_gens_in_bidegree(2 * s - i, 2 * t);
             println!("Sq^{} x_{{{}, {}}}^({}) = [{}] ({:?})", s - i, t-s as i32, s, idx, (0 .. num_gens).map(|k| format!("{}", final_map.output(2 * t, k).entry(0))).collect::<Vec<_>>().join(", "), start.elapsed());
-
-            delta.push(maps);
         }
         println!("Computing Steenrod operations: {:?}", start.elapsed());
     }
