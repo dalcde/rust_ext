@@ -550,40 +550,62 @@ pub fn run_steenrod() -> Result<String, Box<dyn Error>> {
 
 #[allow(unreachable_code)]
 pub fn run_test() -> Result<(), Box<dyn Error>> {
-    let calculator = crate::steenrod_evaluator::SteenrodCalculator::new(2);
-    calculator.compute_basis(20);
-    calculator.evaluate_adem_to_string("P19").unwrap();
-    calculator.evaluate_adem_to_string("Q4").unwrap();
-    return Ok(());
-
     let k = r#"{"type" : "finite dimensional module","name": "$S_2$", "file_name": "S_2", "p": 2, "generic": false, "gens": {"x0": 0}, "adem_actions": []}"#;
-    let k = serde_json::from_str(k)?;
-    let bundle = construct_from_json(k, "adem".to_string())?;
-    let resolution = bundle.resolution.read().unwrap();
-    let p = 2;
+    let k = serde_json::from_str(k).unwrap();
+    let bundle = construct_from_json(k, "adem".to_string()).unwrap();
+    let mut resolution = &*bundle.resolution.read().unwrap();
 
-    let x : i32 = 30;
-    let s : u32 = 6;
-    let idx : usize = 0;
+    let saved_resolution;
+
+    if Path::new("resolution.save").exists() {
+        print!("Loading saved resolution: ");
+        let start = Instant::now();
+        let f = File::open("resolution.save")?;
+        let mut f = BufReader::new(f);
+        saved_resolution = Resolution::load(&mut f, &bundle.chain_complex)?;
+        resolution = &saved_resolution;
+        println!("{:?}", start.elapsed());
+    }
+
+    let x : i32= query_with_default_no_default_indicated("t - s", 8, |x : i32| Ok(x));
+    let s : u32 = query_with_default_no_default_indicated("s", 3, |x : u32| Ok(x));
+    let idx : usize = query_with_default_no_default_indicated("idx", 0, |x : usize| Ok(x));
 
     let t = s as i32 + x;
-    resolution.resolve_through_bidegree(s, t);
 
+    print!("Computing Yoneda representative: ");
+    let start = Instant::now();
     let yoneda = Arc::new(yoneda_representative_element(Arc::clone(&resolution.inner), s, t, idx));
-    let square = Arc::new(TensorChainComplex::new(Arc::clone(&yoneda), Arc::clone(&yoneda)));
+    println!("{:?}", start.elapsed());
 
-    square.compute_through_bidegree(6, 48);
-    println!("Starting test");
-    for deg in 0 ..= 30 {
-        let mut result = FpVector::new(p, square.module(6).dimension(deg + 18));
-        for i in 0 .. square.module(6).dimension(deg) {
-            square.module(6).act_on_basis(&mut result, 1, 18, 2, deg, i);
-        }
-        let mut result = FpVector::new(p, square.module(5).dimension(deg + 18));
-        for i in 0 .. square.module(5).dimension(deg) {
-            square.module(5).act_on_basis(&mut result, 1, 18, 3, deg, i);
+    print!("Dimensions of Yoneda representative: 1");
+    for s in 0 ..= s {
+        let module = yoneda.module(s);
+        print!(" {}", module.total_dimension());
+    }
+    println!("");
+
+
+    let square = Arc::new(TensorChainComplex::new(Arc::clone(&yoneda), Arc::clone(&yoneda)));
+    square.compute_through_bidegree(2 * s, 2 * t);
+
+    for s_ in 0 ..= 2 * s {
+        for t_ in 0 ..= 2 * t {
+            let mut d = 1;
+            while t_ + d <= 2 * t {
+                println!("s, t, d = {}, {}, {}", s_, t_, d);
+                let source_dim = square.module(s_).dimension(t_);
+                let target_dim = square.module(s_).dimension(t_ + d);
+
+                let mut result = FpVector::new(2, target_dim);
+                for i in 0 .. source_dim {
+                    square.module(s_).act_on_basis(&mut result, 1, d, 0, t_, i);
+                }
+                d <<= 1;
+            }
         }
     }
+
     Ok(())
 }
 
