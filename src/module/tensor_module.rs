@@ -1,18 +1,22 @@
 use bivec::BiVec;
-use once::OnceBiVec;
+use once::{OnceVec, OnceBiVec};
 
 use crate::fp_vector::{FpVector, FpVectorT};
 use crate::algebra::{AlgebraAny, Bialgebra};
 use crate::module::{Module, ZeroModule, BoundedModule};
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
+
+use once_cell::sync::OnceCell;
 
 pub struct TensorModule<M : Module, N : Module> {
     pub left : Arc<M>,
     pub right : Arc<N>,
     // Use BlockStructure for this?
     pub offsets : OnceBiVec<BiVec<usize>>,
-    dimensions : OnceBiVec<usize>
+    mutex : Mutex<()>,
+    dimensions : OnceBiVec<usize>,
+    cached_multiplication : OnceBiVec<Vec<OnceVec<OnceCell<FpVector>>>> // degree -> idx -> op_deg -> value;
 }
 
 impl<M : Module, N : Module> TensorModule<M, N> {
@@ -20,6 +24,8 @@ impl<M : Module, N : Module> TensorModule<M, N> {
         TensorModule {
             offsets : OnceBiVec::new(left.min_degree() + right.min_degree()),
             dimensions : OnceBiVec::new(left.min_degree() + right.min_degree()),
+            cached_multiplication : OnceBiVec::new(left.min_degree() + right.min_degree()),
+            mutex : Mutex::new(()),
             left, right
         }
     }
@@ -31,86 +37,73 @@ impl<M : Module, N : Module> TensorModule<M, N> {
         }
     }
 
-    fn act_helper(&self, result : &mut FpVector, coeff : u32, op_degree : i32, op_index : usize, mod_degree : i32, input: &FpVector) {
+    fn compute_action(&self, op_degree : i32, op_index : usize, mod_degree : i32, left_deg : i32, left_index : usize, right_index : usize) -> FpVector {
         let algebra = self.algebra();
         let p = self.prime();
 
+        let mut result = FpVector::new(p, self.dimension(mod_degree + op_degree));
+
         let coproduct = algebra.coproduct(op_degree, op_index).into_iter();
 
-        let source_offset = &self.offsets[mod_degree];
         let target_offset = &self.offsets[mod_degree + op_degree];
 
         let borrow_output = self.left.borrow_output() && self.right.borrow_output();
 
         for (op_deg_l, op_idx_l, op_deg_r, op_idx_r) in coproduct {
-            let mut idx = 0;
-            for left_deg in source_offset.min_degree() .. source_offset.len() {
-                let right_deg = mod_degree - left_deg;
+            let right_deg = mod_degree - left_deg;
 
-                let left_source_dim = self.left.dimension(left_deg);
-                let right_source_dim = self.right.dimension(right_deg);
+            let left_target_dim = self.left.dimension(left_deg + op_deg_l);
+            let right_target_dim = self.right.dimension(right_deg + op_deg_r);
 
-                let left_target_dim = self.left.dimension(left_deg + op_deg_l);
-                let right_target_dim = self.right.dimension(right_deg + op_deg_r);
+            if left_target_dim == 0 || right_target_dim == 0 {
+                continue;
+            }
 
-                if left_target_dim == 0 || right_target_dim == 0 ||
-                    left_source_dim == 0 || right_source_dim == 0 {
-                        idx += left_source_dim * right_source_dim;
+            if borrow_output {
+                let left_result = self.left.act_on_basis_borrow(op_deg_l, op_idx_l, left_deg, left_index);
+
+                if left_result.is_zero_pure() {
+                    continue;
+                }
+
+                let right_result = self.right.act_on_basis_borrow(op_deg_r, op_idx_r, right_deg, right_index);
+
+                if right_result.is_zero_pure() {
+                    continue;
+                }
+                result.add_tensor(target_offset[left_deg + op_deg_l], 1, &left_result, &right_result);
+            } else {
+                // TODO: implement
+            }
+        }
+        result
+    }
+
+    fn act_helper(&self, result : &mut FpVector, coeff : u32, op_degree : i32, op_index : usize, mod_degree : i32, input: &FpVector) {
+        let p = self.prime();
+
+        let source_offset = &self.offsets[mod_degree];
+
+        let mut idx = 0;
+        for left_deg in source_offset.min_degree() .. source_offset.len() {
+            let right_deg = mod_degree - left_deg;
+
+            let left_source_dim = self.left.dimension(left_deg);
+            let right_source_dim = self.right.dimension(right_deg);
+
+            for i in 0 .. left_source_dim {
+                for j in 0 .. right_source_dim {
+                    let entry = input.entry(idx);
+                    if entry == 0 {
+                        idx += 1;
                         continue;
                     }
 
-                if borrow_output {
-                    for i in 0 .. left_source_dim {
-                        let left_result = self.left.act_on_basis_borrow(op_deg_l, op_idx_l, left_deg, i);
-
-                        if left_result.is_zero_pure() {
-                            idx += right_source_dim;
-                            continue;
-                        }
-
-                        for j in 0 .. right_source_dim {
-                            let entry = input.entry(idx);
-                            idx += 1;
-                            if entry == 0 {
-                                continue;
-                            }
-                            let right_result = self.right.act_on_basis_borrow(op_deg_r, op_idx_r, right_deg, j);
-
-                            if right_result.is_zero_pure() {
-                                continue;
-                            }
-                            result.add_tensor(target_offset[left_deg + op_deg_l], coeff * entry, &left_result, &right_result);
-                        }
-                    }
-                } else {
-                    let mut left_result = FpVector::new(p, left_target_dim);
-                    let mut right_result = FpVector::new(p, right_target_dim);
-
-                    for i in 0 .. left_source_dim {
-                        self.left.act_on_basis(&mut left_result, coeff, op_deg_l, op_idx_l, left_deg, i);
-
-                        if left_result.is_zero() {
-                            idx += right_source_dim;
-                            continue;
-                        }
-
-                        for j in 0 .. right_source_dim {
-                            let entry = input.entry(idx);
-                            idx += 1;
-                            if entry == 0 {
-                                continue;
-                            }
-                            self.right.act_on_basis(&mut right_result, entry, op_deg_r, op_idx_r, right_deg, j);
-
-                            if right_result.is_zero() {
-                                continue;
-                            }
-                            result.add_tensor(target_offset[left_deg + op_deg_l], 1, &left_result, &right_result);
-
-                            right_result.set_to_zero();
-                        }
-                        left_result.set_to_zero();
-                    }
+                    let val = self.cached_multiplication[mod_degree][idx][op_degree as usize].get_or_init(|| {
+                        self.compute_action(op_degree, op_index, mod_degree, left_deg, i, j)
+                    });
+                    result.shift_add(val, (coeff * entry) % p);
+                    idx += 1;
                 }
             }
         }
@@ -134,6 +127,8 @@ impl<M : Module, N : Module> Module for TensorModule<M, N> {
         self.left.compute_basis(degree - self.right.min_degree());
         self.right.compute_basis(degree - self.left.min_degree());
 
+        let _lock = self.mutex.lock().unwrap();
+
         for i in self.offsets.len() ..= degree {
             let mut offset_vec = BiVec::with_capacity(self.left.min_degree(), degree - self.left.min_degree() - self.right.min_degree() + 1);
             let mut offset = 0;
@@ -144,6 +139,19 @@ impl<M : Module, N : Module> Module for TensorModule<M, N> {
             assert_eq!(offset_vec.len(), i - self.left.min_degree() - self.right.min_degree() + 1);
             self.dimensions.push(offset);
             self.offsets.push(offset_vec);
+
+            let mut caches = Vec::with_capacity(offset);
+            for _ in 0 .. offset {
+                caches.push(OnceVec::with_capacity((degree - i + 1) as usize));
+            }
+            self.cached_multiplication.push(caches);
+        }
+        for d in self.offsets.min_degree() ..= degree {
+            for i in 0 .. self.dimension(d) {
+                for _ in self.cached_multiplication[d][i].len() ..= (degree - d) as usize {
+                    self.cached_multiplication[d][i].push(OnceCell::new());
+                }
+            }
         }
     }
 
