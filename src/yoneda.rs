@@ -86,15 +86,40 @@ where TCM : BoundedModule,
     map.add_generators_from_matrix_rows(&lock, t, &mut new_output, 0, 0);
     drop(lock);
 
+    let mut best_dim = std::usize::MAX;
+    let mut best : Option<Yoneda<CC>> = None;
+
     let cm = ChainMap {
         s_shift : s,
         chain_maps : vec![map]
     };
-    yoneda_representative(cc, cm)
+
+    for factor in [0.0, 1.0, 0.5, 0.25, 0.75].into_iter() {
+        println!("Finding with factor {}", factor);
+
+        let result = yoneda_representative(Arc::clone(&cc), &cm, *factor);
+
+        let mut new_dim : usize = 0;
+        for s in 0 .. result.max_s() {
+            new_dim += result.module(s).total_dimension();
+        }
+
+        println!("Total dimension: {}", new_dim);
+
+        if new_dim < 800 {
+            return result;
+        }
+
+        if new_dim < best_dim {
+            best_dim = new_dim;
+            best = Some(result);
+        }
+    }
+    best.unwrap()
 }
 
 /// This function produces a quasi-isomorphic quotient of `cc` (as an augmented chain complex) that `map` factors through
-pub fn yoneda_representative<TCM, TC, CC, CMM>(cc : Arc<CC>, map : ChainMap<FreeModuleHomomorphism<CMM>>) -> Yoneda<CC>
+pub fn yoneda_representative<TCM, TC, CC, CMM>(cc : Arc<CC>, map : &ChainMap<FreeModuleHomomorphism<CMM>>, factor : f32) -> Yoneda<CC>
 where TCM : BoundedModule,
       TC : ChainComplex<Module=TCM> + BoundedChainComplex,
       CC : AugmentedChainComplex<TargetComplex=TC, Module=FreeModule, ChainMap=FreeModuleHomomorphism<TCM>>,
@@ -112,10 +137,14 @@ where TCM : BoundedModule,
                 }
             }
             pref
-        })
+        }, factor)
 }
 
-pub fn yoneda_representative_with_strategy<TCM, TC, CC, CMM, F>(cc : Arc<CC>, map : ChainMap<FreeModuleHomomorphism<CMM>>, strategy : F) -> Yoneda<CC>
+fn scale (a : usize, b : f32) -> usize {
+    (a as f32 * b) as usize
+}
+
+pub fn yoneda_representative_with_strategy<TCM, TC, CC, CMM, F>(cc : Arc<CC>, map : &ChainMap<FreeModuleHomomorphism<CMM>>, strategy : F, factor : f32) -> Yoneda<CC>
 where TCM : BoundedModule,
       TC : ChainComplex<Module=TCM> + BoundedChainComplex,
       CC : AugmentedChainComplex<TargetComplex=TC, Module=FreeModule, ChainMap=FreeModuleHomomorphism<TCM>>,
@@ -192,7 +221,7 @@ where TCM : BoundedModule,
                 prev_basis_list.push(None);
                 dim_drop.push(None);
             }
-            'gen_loop: for i in 0 .. dims_with_gens.len() {
+            'gen_loop: for i in 0 .. scale(dims_with_gens.len(), factor) {
                 let gen_dim = dims_with_gens[i];
 
                 // Check if augmentation map is non-zero on the generator

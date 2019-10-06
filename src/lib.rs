@@ -89,7 +89,7 @@ pub fn construct_from_json(mut json : Value, algebra_name : String) -> Result<Al
             s_shift : s,
             chain_maps : vec![map]
         };
-        let yoneda = yoneda_representative(Arc::clone(&resolution.inner), cm);
+        let yoneda = yoneda_representative(Arc::clone(&resolution.inner), &cm, 0.0);
         let mut yoneda = FiniteChainComplex::from(yoneda);
         yoneda.pop();
 
