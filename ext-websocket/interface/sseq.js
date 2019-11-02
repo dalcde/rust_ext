@@ -2,7 +2,7 @@
 
 import { download, promptClass, promptInteger, vecToName, inflate, deflate } from "./utils.js";
 
-export const MIN_PAGE = 2;
+export const MIN_PAGE = 1;
 
 const KEEP_LOG = new Set(["AddDifferential", "AddProductType", "AddProductDifferential", "AddPermanentClass", "SetClassName"]);
 
@@ -173,7 +173,7 @@ export class ExtSseq extends EventEmitter {
     }
 
     addDifferentialInteractive(source, target) {
-        let page = target[1] - source[1];
+        let page = promptInteger("page", "Invalid page");
         let source_dim = this.getClasses(source[0], source[1], page).length;
         let target_dim = this.getClasses(target[0], target[1], page).length;
 
@@ -205,7 +205,7 @@ export class ExtSseq extends EventEmitter {
         }
 
         source_vec = this.pageBasisToE2Basis(page, source[0], source[1], source_vec);
-        target_vec = this.pageBasisToE2Basis(page, source[0] - 1, source[1] + page, target_vec);
+        target_vec = this.pageBasisToE2Basis(page, source[0] - 1, source[1] + 1, target_vec);
 
         this.addDifferential(page, source[0], source[1], source_vec, target_vec);
     }
@@ -381,10 +381,8 @@ export class ExtSseq extends EventEmitter {
     }
 
     get maxY() {
-        // Because of the slope -1 ridge at the end of, the y-to-x ratio is smaller.
-        let realSlope = 1/(1/eval(this._vanishingSlope) + 1);
 
-        return Math.ceil((this.maxDegree - this.minDegree) * realSlope + 1 + eval(this._vanishingIntercept)); // We trust our inputs *so* much.
+        return 10;
     }
 
     processResolving(data) {

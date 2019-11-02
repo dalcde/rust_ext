@@ -170,7 +170,7 @@ class Display extends EventEmitter {
     }
 
     _initializeScale(){
-        this.xScaleInit.domain([this.sseq.minDegree - this.domainOffset, this.sseq.maxX + this.domainOffset]);
+        this.xScaleInit.domain([-10, 10]);
         this.yScaleInit.domain([0 - this.domainOffset, this.sseq.maxY + this.domainOffset]);
     }
 
@@ -604,7 +604,7 @@ class Display extends EventEmitter {
                     for (let j = 0; j < targetDim; j++) {
                         if (matrix[i][j] != 0) {
                             let [sourceX, sourceY] = this.sseqToCanvas(x, y, i, sourceDim);
-                            let [targetX, targetY] = this.sseqToCanvas(x - 1, y + this.page, j, targetDim);
+                            let [targetX, targetY] = this.sseqToCanvas(x - 1, y + 1, j, targetDim);
 
                             context.beginPath();
                             context.moveTo(sourceX, sourceY);

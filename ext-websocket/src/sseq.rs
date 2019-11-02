@@ -8,11 +8,11 @@ use bivec::BiVec;
 use crate::actions::*;
 use crate::Sender;
 
-const MIN_PAGE : i32 = 2;
+const MIN_PAGE : i32 = 1;
 pub const INFINITY : i32 = std::i32::MAX;
 
-fn sseq_profile(r : i32, x : i32, y: i32) -> (i32, i32) { (x - 1, y + r) }
-fn sseq_profile_i(r : i32, x : i32, y: i32) -> (i32, i32) { (x + 1, y - r) }
+fn sseq_profile(_r : i32, x : i32, y: i32) -> (i32, i32) { (x - 1, y + 1) }
+fn sseq_profile_i(_r : i32, x : i32, y: i32) -> (i32, i32) { (x + 1, y - 1) }
 
 /// Given a vector `elt`, a subspace `zeros` of the total space (with a specified choice of
 /// complement) and a basis `basis` of a subspace of the complement, project `elt` to the complement and express
@@ -177,13 +177,13 @@ impl Differential {
 ///  target of the product has dimension 0.
 pub struct Product {
     name : String,
-    x : i32,
-    y : i32,
+    pub x : i32,
+    pub y : i32,
     left : bool,
     user : bool, // whether the product was specified by the user or the module. Products specified by the module are assumed to be permanent
     permanent : bool, // whether the product class is a permanent class
     differential : Option<(i32, bool, usize)>, // The first entry is the page of the differential. The second entry is whether or not this product is the source or target of the differential. The last index is the index of the other end of the differential.
-    matrices : BiVec<BiVec<Option<Matrix>>>
+    pub matrices : BiVec<BiVec<Option<Matrix>>>
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -208,13 +208,13 @@ pub struct Sseq {
     pub p : u32,
     name : SseqChoice,
     min_x : i32,
-    min_y : i32,
+    pub min_y : i32,
 
     pub block_refresh : u32,
     sender : Option<Sender>,
     page_list : Vec<i32>,
-    product_name_to_index : HashMap<String, usize>,
-    products : Arc<RwLock<Vec<Product>>>,
+    pub product_name_to_index : HashMap<String, usize>,
+    pub products : Arc<RwLock<Vec<Product>>>,
     classes : BiVec<BiVec<usize>>, // x -> y -> number of elements
     class_names : BiVec<BiVec<Vec<String>>>, // x -> y -> idx -> name
     differentials : BiVec<BiVec<BiVec<Differential>>>, // x -> y -> r -> differential
@@ -285,13 +285,13 @@ impl Sseq {
         if self.block_refresh > 0 {
             return;
         }
-        for x in 0 .. self.classes.len() {
-            for y in 0 .. self.classes[x].len() {
+        for x in self.min_x .. self.classes.len() {
+            for y in self.min_y .. self.classes[x].len() {
                 self.compute_classes(x, y, false);
             }
         }
-        for x in 0 .. self.classes.len() {
-            for y in 0 .. self.classes[x].len() {
+        for x in self.min_x .. self.classes.len() {
+            for y in self.min_y .. self.classes[x].len() {
                 self.compute_edges(x, y);
             }
         }
@@ -738,6 +738,7 @@ impl Sseq {
                     if matrix[i].is_zero() {
                         continue;
                     }
+                    println!("{}, {}, {}", prod.name, x, y);
                     decompositions.push((matrix[i].clone(), format!("{} {}", prod.name, self.class_names[x - prod.x][y - prod.y][i]), prod.x, prod.y));
                 }
             }
@@ -867,7 +868,7 @@ impl Sseq {
     /// Panics if the target of the differential is not yet defined
     pub fn add_differential(&mut self, r : i32, x : i32, y : i32, source : &FpVector, target : &mut FpVector) {
         assert_eq!(source.dimension(), self.classes[x][y], "length of source vector not equal to dimension of source");
-        assert_eq!(target.dimension(), self.classes[x - 1][y + r], "length of target vector not equal to dimension of target");
+        assert_eq!(target.dimension(), self.classes[x - 1][y + 1], "length of target vector not equal to dimension of target");
 
         // We cannot use extend_with here because of borrowing rules.
         if self.differentials[x][y].len() <= r {
@@ -983,13 +984,26 @@ impl Sseq {
             self.product_name_to_index.insert(name.clone(), products.len() - 1);
         }
     }
+    pub fn add_product_differential_r(&mut self, source : &String, target: &String, r : i32) {
+        let source_idx = *self.product_name_to_index.get(source).unwrap();
+        let target_idx = *self.product_name_to_index.get(target).unwrap();
+
+        let mut products = self.products.write().unwrap();
+
+        products[source_idx].differential = Some((r, true, target_idx));
+        products[target_idx].differential = Some((r, false, source_idx));
+
+        drop(products);
+        self.repropagate_product(source_idx);
+    }
 
     pub fn add_product_differential(&mut self, source : &String, target: &String) {
         let source_idx = *self.product_name_to_index.get(source).unwrap();
         let target_idx = *self.product_name_to_index.get(target).unwrap();
 
         let mut products = self.products.write().unwrap();
-        let r = products[target_idx].y - products[source_idx].y;
+//        let r = products[target_idx].y - products[source_idx].y;
+        let r = 1;
 
         products[source_idx].differential = Some((r, true, target_idx));
         products[target_idx].differential = Some((r, false, source_idx));

@@ -45,37 +45,15 @@ fn ms_to_string(time : i64) -> String {
 #[cfg(not(target_arch = "wasm32"))]
 pub struct Manager {
     sseq_sender : Sender,
-    res_sender : Sender
 }
 
 #[cfg(not(target_arch = "wasm32"))]
 impl Manager {
     fn new<T>(f : T) -> Self where T : Fn(String) -> () + Send + 'static
     {
-        let (sseq_sender, sseq_receiver) = mpsc::channel();
+        let (sseq_sender, sseq_receiver) : (Sender, mpsc::Receiver<Message>) = mpsc::channel();
         let (server_sender, server_receiver) = mpsc::channel();
-        let (res_sender, res_receiver) = mpsc::channel();
-
-        // ResolutionManager thread
-        let sender = sseq_sender.clone();
-        thread::spawn(move|| {
-            let mut resolution_manager = ResolutionManager::new(sender);
-
-            let wrapper = Wrapper::with_termwidth()
-                .subsequent_indent("                    ");
-
-            for msg in res_receiver {
-                let action_string = format!("{}", msg);
-                let start = Local::now();
-                println!("{}\n", wrapper.fill(&format!("{} ResolutionManager: Processing {}", start.format("%F %T"), action_string)));
-
-                resolution_manager.process_message(msg).unwrap();
-
-                let end = Local::now();
-                let time_diff = (end - start).num_milliseconds();
-                println!("{}\n", wrapper.fill(&format!("{} ResolutionManager: Completed in {}", start.format("%F %T"), ms_to_string(time_diff))));
-            }
-        });
+//        let (res_sender, res_receiver) = mpsc::channel();
 
         // SseqManager thread
         let sender = server_sender.clone();
@@ -112,8 +90,7 @@ impl Manager {
         });
 
         Manager {
-            sseq_sender,
-            res_sender
+            sseq_sender
         }
     }
 
@@ -134,12 +111,7 @@ impl Manager {
                         Err(e) => eprintln!("Failed to send message to ResolutionManager: {}", e)
                     }
                 },
-                Recipient::Resolver => {
-                    match self.res_sender.send(msg.clone()) {
-                        Ok(_) => (),
-                        Err(e) => eprintln!("Failed to send message to ResolutionManager: {}", e)
-                    }
-                }
+                Recipient::Resolver => ()
             }
         }
     }
