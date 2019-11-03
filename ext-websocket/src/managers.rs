@@ -12,8 +12,8 @@ const NUM_THREADS : usize = 2;
 const MAX_J : i32 = 18;
 use crate::Sender;
 
-const NUM_DELTA = /i;
-const MAX_X = MAX_DELTA * 24;
+const NUM_DELTA : i32 = 3;
+const MAX_X : i32 = NUM_DELTA * 24;
 
 /// This is more-or-less the same as the ResolutionManager, except it manages the Sseq object. The
 /// `sender` should send the information to the display frontend.
