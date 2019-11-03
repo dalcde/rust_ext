@@ -2,7 +2,7 @@
 
 import { download, promptClass, promptInteger, vecToName, inflate, deflate } from "./utils.js";
 
-export const MIN_PAGE = 1;
+export const MIN_PAGE = 0;
 
 const KEEP_LOG = new Set(["AddDifferential", "AddProductType", "AddProductDifferential", "AddPermanentClass", "SetClassName"]);
 

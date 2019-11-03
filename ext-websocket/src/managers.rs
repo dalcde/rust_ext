@@ -9,7 +9,11 @@ use thread_token::TokenBucket;
 #[cfg(feature = "concurrent")]
 const NUM_THREADS : usize = 2;
 
+const MAX_J : i32 = 18;
 use crate::Sender;
+
+const NUM_DELTA = /i;
+const MAX_X = MAX_DELTA * 24;
 
 /// This is more-or-less the same as the ResolutionManager, except it manages the Sseq object. The
 /// `sender` should send the information to the display frontend.
@@ -17,6 +21,15 @@ pub struct SseqManager {
     sender : Sender,
     sseq : Option<Sseq>,
     unit_sseq : Option<Sseq>
+}
+
+fn incr(x : &String, n : i32) -> String {
+    if n == 0 {
+        return x.clone();
+    }
+    let mut items = x.split(" ");
+    let d : i32 = items.next().unwrap().parse().unwrap();
+    format!("{} {}", d + n, items.collect::<Vec<_>>().join(" "))
 }
 
 impl SseqManager {
@@ -28,105 +41,133 @@ impl SseqManager {
         let mut sseq = Sseq::new(2, SseqChoice::Main, -96, 0, Some(sender.clone()));
         sseq.block_refresh = 1;
 
-        let mut classes : BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-96, 96);
-        let mut h1: BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-96, 96);
-        let mut h2: BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-96, 96);
-        let mut a1: BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-96, 96);
-        let mut xx: BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-96, 96);
+        let mut classes : BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-MAX_X, MAX_X);
+        let mut h1: BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-MAX_X, MAX_X);
+        let mut h2: BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-MAX_X, MAX_X);
+        let mut a1: BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-MAX_X, MAX_X);
+        let mut xx: BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-MAX_X, MAX_X);
+        let mut yy: BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-MAX_X, MAX_X);
 
-        for x in -96 .. 96 {
+        for x in -MAX_X .. MAX_X {
             classes.push(BiVec::with_capacity(0, 20));
             h1.push(BiVec::with_capacity(0, 20));
             h2.push(BiVec::with_capacity(0, 20));
             a1.push(BiVec::with_capacity(0, 20));
             xx.push(BiVec::with_capacity(0, 20));
+            yy.push(BiVec::with_capacity(0, 20));
             for _ in 0 .. 20 {
                 classes[x].push(Vec::new());
                 h1[x].push(Vec::new());
                 h2[x].push(Vec::new());
                 a1[x].push(Vec::new());
                 xx[x].push(Vec::new());
+                yy[x].push(Vec::new());
             }
         }
 
-        for d in -4 .. 4 {
-            let x_shift = d * 24;
-            for j in 0 .. 10 {
-                for i in 0 .. 8 {
-                    if x_shift + 2 * j + i >= 96 {
+        let bases = [("g1", 0), ("g2", 2), ("g3", 10)];
+        for (basis, shift) in bases.into_iter() {
+            for d in -NUM_DELTA .. NUM_DELTA {
+                let x_shift = d * 24 + shift;
+                for j in 0 .. MAX_J - shift / 2 {
+                    for i in 0 .. 8 {
+                        if x_shift + 2 * j + i >= MAX_X {
+                            continue;
+                        }
+                        classes[x_shift + 2 * j + i][i].push(format!("{} {} a_1^{} h_1^{}", d, basis, j, i));
+                        if i < 8 - 1 {
+                            h1[x_shift + 2 * j + i][i].push(format!("{} {} a_1^{} h_1^{}", d, basis, j, i + 1));
+                        } else {
+                            h1[x_shift + 2 * j + i][i].push("".to_string());
+                        }
+                        if i == 0 && j == 0 {
+                            h2[x_shift + 2 * j + i][i].push(format!("{} {} h_2^1", d, basis));
+                        } else {
+                            h2[x_shift + 2 * j + i][i].push("".to_string());
+                        }
+                        if j < MAX_J - 1 - shift / 2{
+                            a1[x_shift + 2 * j + i][i].push(format!("{} {} a_1^{} h_1^{}", d, basis, j + 1, i));
+                        } else {
+                            a1[x_shift + 2 * j + i][i].push("".to_string());
+                        }
+                        if i == 0 && j == 0 {
+                            xx[x_shift + 2 * j + i][i].push(format!("{} {} x", d, basis));
+                            yy[x_shift + 2 * j + i][i].push(format!("{} {} y", d, basis));
+                        } else if i == 1 && j == 0 {
+                            xx[x_shift + 2 * j + i][i].push(format!("{} {} h_1 x", d, basis));
+                            yy[x_shift + 2 * j + i][i].push(format!("{} {} h_1 y", d, basis));
+                        } else if i == 2 && j == 0 {
+                            xx[x_shift + 2 * j + i][i].push(format!("{} {} h_2^3", d, basis));
+                            yy[x_shift + 2 * j + i][i].push(format!("{} {} h_1^2 y", d, basis));
+                        } else if i == 0 && j == 1 {
+                            xx[x_shift + 2 * j + i][i].push(format!("{} {} a_1 x", d, basis));
+                            yy[x_shift + 2 * j + i][i].push("".to_string());
+                        } else if i == 1 && j == 1 {
+                            xx[x_shift + 2 * j + i][i].push(format!("{} {} a_1 h_1 x", d, basis));
+                            yy[x_shift + 2 * j + i][i].push("".to_string());
+                        } else {
+                            xx[x_shift + 2 * j + i][i].push("".to_string());
+                            yy[x_shift + 2 * j + i][i].push("".to_string());
+                        }
+                    }
+                }
+                for i in 1 .. 4 {
+                    classes[x_shift + 3 * i][i].push(format!("{} {} h_2^{}", d, basis, i));
+                    h1[x_shift + 3 * i][i].push("".to_string());
+                    if i < 3 {
+                        h2[x_shift + 3 * i][i].push(format!("{} {} h_2^{}", d, basis, i + 1));
+                    } else {
+                        h2[x_shift + 3 * i][i].push("".to_string());
+                    }
+                    a1[x_shift + 3 * i][i].push("".to_string());
+                    if i == 1 {
+                        xx[x_shift + 3 * i][i].push(format!("{} {} a_1 h_1 x", d, basis));
+                    } else {
+                        xx[x_shift + 3 * i][i].push("".to_string());
+                    }
+                    if i == 1{
+                        yy[x_shift + 3 * i][i].push(format!("{} {} h_2 y", d, basis));
+                    } else if i == 2 {
+                        yy[x_shift + 3 * i][i].push(format!("{} {} h_2^2 y", d, basis));
+                    } else {
+                        yy[x_shift + 3 * i][i].push("".to_string());
+                    }
+                }
+                let class_list = vec![
+                    // x, y, name, h1, h2, a1, xx
+                    (7 , 1, "x"        , "h_1 x"    , "a_1 h_1 x", "a_1 x"    , "d"),
+                    (8 , 2, "h_1 x"    , "h_2^3"    , ""         , "a_1 h_1 x", "h_1 d"),
+                    (9 , 1, "a_1 x"    , "a_1 h_1 x", ""         , ""         , "h_1 y"),
+                    (10, 2, "a_1 h_1 x", ""         , ""         , ""         , "h_1^2 y"),
+                    (14, 2, "d"        , "h_1 d"    , "h_1^2 y"  , "h_1 y"    , "h_2^2 y"),
+                    (15, 3, "h_1 d"    , ""         , ""         , "h_1^2 y"  , ""),
+                    (15, 1, "y"        , "h_1 y"    , "h_2 y"    , ""         , ""),
+                    (16, 2, "h_1 y"    , "h_1^2 y"  , ""         , ""         , ""),
+                    (17, 3, "h_1^2 y"  , ""         , ""         , ""         , ""),
+                    (18, 2, "h_2 y"    , ""         , "h_2^2 y"  , ""         , ""),
+                    (21, 3, "h_2^2 y"  , ""         , ""         , ""         , "")
+                ];
+
+                for class in class_list {
+                    if x_shift + class.0 >= MAX_X {
                         continue;
                     }
-                    classes[x_shift + 2 * j + i][i].push(format!("{} a_1^{} h_1^{}", d, j, i));
-                    if i < 8 - 1 {
-                        h1[x_shift + 2 * j + i][i].push(format!("{} a_1^{} h_1^{}", d, j, i + 1));
-                    } else {
-                        h1[x_shift + 2 * j + i][i].push("".to_string());
-                    }
-                    if i == 0 && j == 0 {
-                        h2[x_shift + 2 * j + i][i].push(format!("{} h_2^1", d));
-                    } else {
-                        h2[x_shift + 2 * j + i][i].push("".to_string());
-                    }
-                    if j < 10 - 1 {
-                        a1[x_shift + 2 * j + i][i].push(format!("{} a_1^{} h_1^{}", d, j + 1, i));
-                    } else {
-                        a1[x_shift + 2 * j + i][i].push("".to_string());
-                    }
-                    if i == 0 && j == 0 {
-                        xx[x_shift + 2 * j + i][i].push(format!("{} x", d));
-                    } else if i == 1 && j == 0 {
-                        xx[x_shift + 2 * j + i][i].push(format!("{} h_1 x", d));
-                    } else if i == 2 && j == 0 {
-                        xx[x_shift + 2 * j + i][i].push(format!("{} h_2^3", d));
-                    } else if i == 0 && j == 1 {
-                        xx[x_shift + 2 * j + i][i].push(format!("{} a_1 x", d));
-                    } else if i == 1 && j == 1 {
-                        xx[x_shift + 2 * j + i][i].push(format!("{} a_1 h_1 x", d));
-                    } else {
-                        xx[x_shift + 2 * j + i][i].push("".to_string());
-                    }
-                }
-            }
-            for i in 1 .. 4 {
-                classes[x_shift + 3 * i][i].push(format!("{} h_2^{}", d, i));
-                h1[x_shift + 3 * i][i].push("".to_string());
-                if i < 3 {
-                    h2[x_shift + 3 * i][i].push(format!("{} h_2^{}", d, i + 1));
-                } else {
-                    h2[x_shift + 3 * i][i].push("".to_string());
-                }
-                a1[x_shift + 3 * i][i].push("".to_string());
-                if i == 0 {
-                    xx[x_shift + 3 * i][i].push(format!("{} a_1 h_1 x", d));
-                } else {
-                    xx[x_shift + 3 * i][i].push("".to_string());
-                }
-            }
-            let class_list = vec![
-                // x, y, name, h1, h2, a1, xx
-                (7 , 1, "x"        , "h_1 x"    , "a_1 h_1 x", "a_1 x"    , "d"),
-                (8 , 2, "h_1 x"    , "h_2^3"    , ""         , "a_1 h_1 x", "h_1 d"),
-                (9 , 1, "a_1 x"    , "a_1 h_1 x", ""         , ""         , "h_1 y"),
-                (10, 2, "a_1 h_1 x", ""         , ""         , ""         , "h_1^2 y"),
-                (14, 2, "d"        , "h_1 d"    , "h_1^2 y"  , "h_1 y"    , "h_2^2 y"),
-                (15, 3, "h_1 d"    , ""         , ""         , "h_1^2 y"  , ""),
-                (15, 1, "y"        , "h_1 y"    , "h_2 y"    , ""         , ""),
-                (16, 2, "h_1 y"    , "h_1^2 y"  , ""         , ""         , ""),
-                (17, 3, "h_1^2 y"  , ""         , ""         , ""         , ""),
-                (18, 2, "h_2 y"    , ""         , "h_2^2 y"  , ""         , ""),
-                (21, 3, "h_2^2 y"  , ""         , ""         , ""         , "")
-            ];
+                    classes[x_shift + class.0][class.1].push(format!("{} {} {}", d, basis, class.2));
+                    h1[x_shift + class.0][class.1].push(if class.3 == "" { "".to_string() } else { format!("{} {} {}", d, basis, class.3) });
+                    h2[x_shift + class.0][class.1].push(if class.4 == "" { "".to_string() } else { format!("{} {} {}", d, basis, class.4) });
+                    a1[x_shift + class.0][class.1].push(if class.5 == "" { "".to_string() } else { format!("{} {} {}", d, basis, class.5) });
+                    xx[x_shift + class.0][class.1].push(if class.6 == "" { "".to_string() } else { format!("{} {} {}", d, basis, class.6) });
 
-            for class in class_list {
-                classes[x_shift + class.0][class.1].push(format!("{} {}", d, class.2));
-                h1[x_shift + class.0][class.1].push(if class.3 == "" { "".to_string() } else { format!("{} {}", d, class.3) });
-                h2[x_shift + class.0][class.1].push(if class.4 == "" { "".to_string() } else { format!("{} {}", d, class.4) });
-                a1[x_shift + class.0][class.1].push(if class.5 == "" { "".to_string() } else { format!("{} {}", d, class.5) });
-                xx[x_shift + class.0][class.1].push(if class.6 == "" { "".to_string() } else { format!("{} {}", d, class.6) });
+                    if class.1 - class.0 == 14 {
+                        yy[x_shift + class.0][class.1].push(format!("{} {} a_1^2 h_1^{}", d + 1, basis, class.0 + 1));
+                    } else {
+                        yy[x_shift + class.0][class.1].push("".to_string());
+                    }
+                }
             }
         }
 
-        for x in -96 .. 96 {
+        for x in -MAX_X .. MAX_X {
             for y in 0 .. 20 {
                 sseq.set_class(x, y as i32, classes[x][y].len());
                 for (i, nm) in classes[x][y].iter().enumerate() {
@@ -141,22 +182,53 @@ impl SseqManager {
             (3, 1, "h_2", h2, true),
             (2, 0, "a_1", a1, false),
             (7, 1, "x", xx, false),
+            (15, 1, "y", yy, false),
         ];
+
+        let xs = 24;
+        let ys = 0;
+        let name = "Δ".to_string();
+        sseq.add_product_type(&name, xs, ys, true, true);
+        for x in -MAX_X .. MAX_X {
+            for y in 0 .. 20 {
+                if x + xs >= MAX_X || y + ys >= 20 {
+                    continue;
+                }
+                if classes[x][y].len() == 0 {
+                    continue;
+                }
+                let target_dim = classes[x + xs][y + ys].len();
+                let mut product_matrix : Vec<Vec<u32>> = Vec::with_capacity(classes[x][y].len());
+
+                for name in &classes[x][y] {
+                    let mut row = vec![0; target_dim];
+
+                    let prod = incr(name, 1);
+
+                    let idx = classes[x + xs][y + ys].iter().position(|z| z == &prod).unwrap();
+                    row[idx] = 1;
+
+                    product_matrix.push(row)
+                }
+                assert_eq!(product_matrix.len(), classes[x][y].len());
+
+                sseq.add_product(&name, x, y, xs, ys, true, &product_matrix);
+            }
+        }
 
         for (xs, ys, name, arr, perm) in tuples {
             let name = name.to_string();
             sseq.add_product_type(&name, xs, ys, true, perm);
 
-            for x in -96 .. 96 {
+            for x in -MAX_X .. MAX_X {
                 for y in 0 .. 20 {
-                    if x + xs >= 96 || y + ys >= 20 {
+                    if x + xs >= MAX_X || y + ys >= 20 {
                         continue;
                     }
                     if classes[x][y].len() == 0 {
                         continue;
                     }
                     let target_dim = classes[x + xs][y + ys].len();
-
                     let mut product_matrix : Vec<Vec<u32>> = Vec::with_capacity(classes[x][y].len());
 
                     for prod in &arr[x][y] {
@@ -174,10 +246,9 @@ impl SseqManager {
                 }
             }
         }
-        let square = ["h_2", "a_1", "x"];
+        let square = [("h_2", true), ("a_1", false), ("x", true)];
 
-        // h_2^2
-        for name in &square {
+        for (name, perm) in &square {
             let name = name.to_string();
             let new_name = format!("{}^2", name);
 
@@ -191,41 +262,44 @@ impl SseqManager {
             drop(product);
             drop(prod_obj);
 
-            sseq.add_product_type(&new_name, xs * 2, ys * 2, true, true);
+            sseq.add_product_type(&new_name, xs * 2, ys * 2, true, *perm);
 
-            let product = &mut sseq.products.write().unwrap()[prod_idx];
+            let product = &mut sseq.products.write().unwrap();
+            let old_prod_idx = prod_idx;
+            let new_prod_idx = *sseq.product_name_to_index.get(&new_name).unwrap();
 
-            for x in -96 .. 96 {
+            for x in -MAX_X .. MAX_X {
                 for y in 0 .. 20 {
-                    if x + xs * 2 >= 96 || y + ys * 2 >= 20 {
+                    if x + xs * 2 >= MAX_X || y + ys * 2 >= 20 {
                         continue;
                     }
 
-                    if classes[x][y].len() == 0 || classes[x + xs][y + ys].len() == 0 {
+                    if classes[x][y].len() == 0 || classes[x + xs][y + ys].len() == 0 || classes[x + xs * 2][y + ys * 2].len() == 0 {
                         continue;
                     }
 
-                    if product.matrices[x][y].is_none() || product.matrices[x + xs][y + ys].is_none() {
+                    if product[old_prod_idx].matrices[x][y].is_none() || product[old_prod_idx].matrices[x + xs][y + ys].is_none() {
                         continue;
                     }
 
-                    let result = product.matrices[x][y].as_ref().unwrap() * product.matrices[x + xs][y + ys].as_ref().unwrap();
+                    let result = product[old_prod_idx].matrices[x][y].as_ref().unwrap() * product[old_prod_idx].matrices[x + xs][y + ys].as_ref().unwrap();
 
-                    while x >= product.matrices.len() {
-                        product.matrices.push(BiVec::new(sseq.min_y));
+                    while x >= product[new_prod_idx].matrices.len() {
+                        product[new_prod_idx].matrices.push(BiVec::new(sseq.min_y));
                     }
-                    while y > product.matrices[x].len() {
-                        product.matrices[x].push(None);
+                    while y > product[new_prod_idx].matrices[x].len() {
+                        product[new_prod_idx].matrices[x].push(None);
                     }
 
-                    product.matrices[x].push(Some(result));
+                    product[new_prod_idx].matrices[x].push(Some(result));
                 }
             }
         }
 
         sseq.add_product_differential_r(&"a_1".to_string(), &"h_1".to_string(), 1);
         sseq.add_product_differential_r(&"x".to_string(), &"h_2^2".to_string(), 1);
-        sseq.add_product_differential_r(&"a_1^2".to_string(), &"h_2".to_string(), 1);
+        sseq.add_product_differential_r(&"a_1^2".to_string(), &"h_2".to_string(), 2);
+        sseq.add_product_differential_r(&"y".to_string(), &"x^2".to_string(), 1);
 
         sseq.block_refresh = 0;
         sseq.refresh_all();

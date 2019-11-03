@@ -8,7 +8,7 @@ use bivec::BiVec;
 use crate::actions::*;
 use crate::Sender;
 
-const MIN_PAGE : i32 = 1;
+const MIN_PAGE : i32 = 0;
 pub const INFINITY : i32 = std::i32::MAX;
 
 fn sseq_profile(_r : i32, x : i32, y: i32) -> (i32, i32) { (x - 1, y + 1) }
@@ -738,7 +738,6 @@ impl Sseq {
                     if matrix[i].is_zero() {
                         continue;
                     }
-                    println!("{}, {}, {}", prod.name, x, y);
                     decompositions.push((matrix[i].clone(), format!("{} {}", prod.name, self.class_names[x - prod.x][y - prod.y][i]), prod.x, prod.y));
                 }
             }
@@ -930,6 +929,7 @@ impl Sseq {
     /// d$ when $p_1$, $p_2$ are products and $d$ is the differential. Our strategy is that we
     /// compute $p_2 p_1 d$ if and only if $p_1$ comes earlier in the list of products than $p_2$.
     pub fn add_differential_propagate(&mut self, r : i32, x : i32, y : i32, source : &FpVector, target : &mut Option<FpVector>, product_index : usize) {
+        self.block_refresh = 1;
         let num_products = self.products.read().unwrap().len();
         if product_index == num_products - 1 {
             match target.as_mut() {
@@ -946,6 +946,8 @@ impl Sseq {
         if let Some((r_, x_, y_, source_, mut target_)) = new_d {
             self.add_differential_propagate(r_, x_, y_, &source_, &mut target_, product_index);
         }
+        self.block_refresh = 0;
+        self.refresh_all();
     }
 
     pub fn add_permanent_class(&mut self, x : i32, y : i32, class : &FpVector) {

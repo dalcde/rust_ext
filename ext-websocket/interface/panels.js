@@ -10,7 +10,7 @@ export const ACTION_TO_DISPLAY = {
         let y = details.y;
         let r = details.r;
         let sourceNames = sseq.classNames.get(x, y);
-        let targetNames = sseq.classNames.get(x - 1, y + r);
+        let targetNames = sseq.classNames.get(x - 1, y + 1);
 
         return [
             katex.renderToString(`d_{${r}}(${vecToName(details.source, sourceNames)}) = ${vecToName(details.target, targetNames)}`),
