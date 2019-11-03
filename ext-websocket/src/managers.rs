@@ -38,7 +38,7 @@ impl SseqManager {
     /// # Arguments
     ///  * `sender` - The `Sender` object to send messages to.
     pub fn new(sender : Sender) -> Self {
-        let mut sseq = Sseq::new(2, SseqChoice::Main, -96, 0, Some(sender.clone()));
+        let mut sseq = Sseq::new(2, SseqChoice::Main, -MAX_X, 0, Some(sender.clone()));
         sseq.block_refresh = 1;
 
         let mut classes : BiVec<BiVec<Vec<String>>> = BiVec::with_capacity(-MAX_X, MAX_X);
@@ -305,11 +305,11 @@ impl SseqManager {
         sseq.refresh_all();
 
         SseqManager {
-             sender : sender,
-             sseq : Some(sseq),
-             unit_sseq : None
+            sender : sender,
+            sseq : Some(sseq),
+            unit_sseq : None
         }
-   }
+    }
 
     /// # Return
     /// Whether this was a user action. If it is a user action, we want to send a "Complete" when
