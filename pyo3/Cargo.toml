@@ -1,0 +1,19 @@
+[package]
+name = "ext"
+version = "0.1.0"
+authors = ["Dexter Chua <dexter@math.harvard.edu>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+name = "ext"
+crate-type = ["cdylib"]
+
+[dependencies]
+rust_ext = { path = "../libraries/" }
+serde_json = "1.0.0"
+
+[dependencies.pyo3]
+version = "0.9.0-alpha.1"
+features = ["extension-module"]
