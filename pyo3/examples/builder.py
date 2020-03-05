@@ -1,6 +1,6 @@
 from ext import *
 
-module = FDModuleBuilder(3)\
+module = module.FDModuleBuilder(3)\
         .set_name("C(3, alpha_1)")\
         .add_generator(0, "x0")\
         .add_generator(1, "x1")\

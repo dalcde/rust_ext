@@ -1,7 +1,7 @@
 from ext import *
 
-c2 = FiniteModule("C2.json").as_anymodule()
-ceta = FintieModule("Ceta.json").as_anymodule()
+c2 = module.FiniteModule("C2.json").as_anymodule()
+ceta = module.FiniteModule("Ceta.json").as_anymodule()
 
 # We need to specify the maximum non-zero degree (it is okay to overestimate;
 # the module will be truncated if this is underestimated)
