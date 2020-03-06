@@ -6,19 +6,22 @@ use crate::resolution::Resolution;
 use crate::wrapper_type;
 use fp::vector::{FpVector, FpVectorT};
 use rust_ext::algebra::SteenrodAlgebra as SteenrodAlgebraRust;
-use rust_ext::chain_complex::ChainComplex;
+use rust_ext::chain_complex::{AugmentedChainComplex, ChainComplex};
 use rust_ext::module::homomorphism::{
     BoundedModuleHomomorphism, FiniteModuleHomomorphism as FiniteModuleHomomorphismRust,
+    ModuleHomomorphism as _,
 };
-use rust_ext::module::{FDModule, FiniteModule as FiniteModuleRust};
+use rust_ext::module::{BoundedModule as _, FDModule, FiniteModule as FiniteModuleRust};
+use rust_ext::resolution::Resolution as ResolutionRust;
 use rust_ext::resolution_homomorphism::ResolutionHomomorphismToUnit;
 use rust_ext::CCC;
-use std::sync::Arc;
+use std::sync::{Arc, RwLock};
 
-wrapper_type!(
-    FiniteModuleHomomorphism,
-    FiniteModuleHomomorphismRust<FiniteModuleRust>
-);
+wrapper_type! {
+    pub FiniteModuleHomomorphism {
+        inner: FiniteModuleHomomorphismRust<FiniteModuleRust>,
+    }
+}
 
 #[pymethods]
 impl FiniteModuleHomomorphism {
@@ -29,13 +32,37 @@ impl FiniteModuleHomomorphism {
     ) -> PyResult<ResolutionHomomorphism> {
         // TODO: check correct module
 
+        let source = source.get()?;
+        let target = target.get()?;
+
+        let source_ = source.read().unwrap();
+        let target_ = target.read().unwrap();
+        let max_degree = match &*source_.inner.target().module(0) {
+            FiniteModuleRust::FDModule(m) => m.max_degree(),
+            FiniteModuleRust::FPModule(m) => m.generators.get_max_generator_degree(),
+            FiniteModuleRust::RealProjectiveSpace(_) => {
+                return Err(ValueError::py_err(
+                    "Real Projective Space not supported for finite module homomorphism",
+                ));
+            }
+        };
+
+        source_.resolve_through_bidegree(0, max_degree);
+        target_.resolve_through_bidegree(0, max_degree + self.get()?.degree_shift());
+
         let inner = ResolutionHomomorphismToUnit::from_module_homomorphism(
             "".to_string(),
-            Arc::clone(&source.get()?.read().unwrap().inner),
-            Arc::clone(&target.get()?.read().unwrap().inner),
+            Arc::clone(&source_.inner),
+            Arc::clone(&target_.inner),
             &*self.get()?,
         );
-        Ok(ResolutionHomomorphism::from_inner(Arc::new(inner)))
+        drop(source_);
+        drop(target_);
+        Ok(ResolutionHomomorphism::from_inner(
+            Arc::new(inner),
+            source,
+            target,
+        ))
     }
 }
 
@@ -104,7 +131,13 @@ impl FDModuleHomomorphismBuilder {
     }
 }
 
-wrapper_type!(ResolutionHomomorphism, ResolutionHomomorphismToUnit<CCC>);
+wrapper_type! {
+    pub ResolutionHomomorphism {
+        inner: ResolutionHomomorphismToUnit<CCC>,
+        source: RwLock<ResolutionRust<CCC>>,
+        target: RwLock<ResolutionRust<CCC>>,
+    }
+}
 
 #[pymethods]
 impl ResolutionHomomorphism {
@@ -114,20 +147,30 @@ impl ResolutionHomomorphism {
     }
 
     fn act(&self, s: u32, t: i32, idx: usize) -> PyResult<Vec<u32>> {
-        // Check source/target to avoid panics
         let inner = self.get()?;
-        inner.extend(s, t);
         let source_s = s - inner.homological_degree_shift;
         let source_t = t - inner.internal_degree_shift;
 
-        if inner.target.weak_count() == 0 {
-            return Err(ValueError::py_err(
-                "Target of resolution homomorphism is freed",
-            ));
+        self.get_source()?
+            .read()
+            .unwrap()
+            .resolve_through_bidegree(source_s, source_t);
+        self.get_target()?
+            .read()
+            .unwrap()
+            .resolve_through_bidegree(s, t);
+        inner.extend(s, t);
+
+        let target = inner.source.upgrade().unwrap(); // This is always safe because we own a strong copy of the source and target
+        let source = inner.source.upgrade().unwrap();
+
+        let target_dim = target.module(s).number_of_gens_in_degree(t);
+        if target_dim <= idx {
+            return Err(ValueError::py_err(format!(
+                "Index out of bound: Dimension of Ext^({}, {}) is {} but index is {}",
+                s, t, target_dim, idx
+            )));
         }
-        let source = inner.source.upgrade().ok_or(ValueError::py_err(
-            "Source of resolution homomorphism is freed",
-        ))?;
 
         let mut result = FpVector::new(
             source.prime(),

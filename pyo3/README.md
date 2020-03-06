@@ -21,7 +21,8 @@ See `examples/` (just run the python script as usual after the previous commands
  - Improve FDModuleBuilder and implement FPModuleBuilder
     - Support custom profiles
 
- - Avoid panics in general
+ - Avoid panics in general. This causes the whole python repl to terminate.
+   Instead, raise Exceptions which are handled gracefully.
  - Produce a package instead of module so that we can
 ```python
 from ext.module import *

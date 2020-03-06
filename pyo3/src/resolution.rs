@@ -8,7 +8,11 @@ use rust_ext::resolution::Resolution as ResolutionRust;
 use rust_ext::CCC;
 use std::sync::{Arc, RwLock};
 
-wrapper_type!(Resolution, RwLock<ResolutionRust<CCC>>);
+wrapper_type! {
+    pub Resolution {
+        inner: RwLock<ResolutionRust<CCC>>,
+    }
+}
 
 #[pymethods]
 impl Resolution {

@@ -19,10 +19,18 @@ fn ext(_py: Python<'_>, m: &PyModule) -> PyResult<()> {
 
 #[macro_export]
 macro_rules! wrapper_type {
-    ( $outer:ident, $inner:ty ) => {
+    {
+        $vis:vis $outer:ident {
+            inner: $inner:ty,
+            $($name:ident: $ty:ty,)*
+        }
+    } => {
         #[pyclass]
         pub struct $outer {
             inner: Option<Arc<$inner>>,
+            $(
+                $name: Option<Arc<$ty>>,
+            )*
         }
 
         impl $outer {
@@ -35,9 +43,27 @@ macro_rules! wrapper_type {
                 ))
             }
 
+            paste::item! {
+                $(
+                    #[allow(dead_code)]
+                    pub fn [<get_ $name>](&self) -> PyResult<Arc<$ty>> {
+                        Ok(Arc::clone(
+                                self.$name
+                                .as_ref()
+                                .ok_or(ReferenceError::py_err("Use of freed object"))?,
+                        ))
+                    }
+                )*
+            }
+
             #[allow(dead_code)]
-            pub fn from_inner(inner: Arc<$inner>) -> Self {
-                Self { inner: Some(inner) }
+            pub fn from_inner(inner: Arc<$inner>, $($name: Arc<$ty>,)*) -> Self {
+                Self {
+                    inner: Some(inner),
+                    $(
+                        $name: Some($name),
+                    )*
+                }
             }
         }
 
@@ -45,6 +71,9 @@ macro_rules! wrapper_type {
         impl $outer {
             fn free(&mut self) {
                 self.inner.take();
+                $(
+                    self.$name.take();
+                )*
             }
         }
     };

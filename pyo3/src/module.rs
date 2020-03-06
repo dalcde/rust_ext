@@ -3,14 +3,14 @@ use std::fs::File;
 use std::io::BufReader;
 use std::sync::Arc;
 
-use pyo3::exceptions::{IOError, ReferenceError, RuntimeError, ValueError, TypeError};
+use pyo3::exceptions::{IOError, ReferenceError, RuntimeError, TypeError, ValueError};
 use pyo3::prelude::*;
 
 use bivec::BiVec;
 use fp::prime::ValidPrime;
 use rust_ext::algebra::SteenrodAlgebra as SteenrodAlgebraRust;
 //use rust_ext::algebra::{Algebra, MilnorAlgebra};
-use rust_ext::algebra::{Algebra, AdemAlgebra};
+use rust_ext::algebra::{AdemAlgebra, Algebra};
 use rust_ext::module::FiniteModule as FiniteModuleRust;
 use rust_ext::module::{BoundedModule, FDModule, Module, SumModule, TensorModule};
 
@@ -21,7 +21,11 @@ use crate::wrapper_type;
 
 type AnyModuleRust = Arc<dyn Module<Algebra = SteenrodAlgebraRust>>;
 
-wrapper_type!(AnyModule, AnyModuleRust);
+wrapper_type! {
+    pub AnyModule {
+        inner: AnyModuleRust,
+    }
+}
 
 #[pymethods]
 impl AnyModule {
@@ -65,7 +69,11 @@ impl AnyModule {
     }
 }
 
-wrapper_type!(FiniteModule, FiniteModuleRust);
+wrapper_type! {
+    pub FiniteModule {
+        inner: FiniteModuleRust,
+    }
+}
 
 impl FiniteModule {
     fn from_json_inner(mut json: Value) -> PyResult<Self> {
@@ -154,7 +162,10 @@ impl FiniteModule {
             }
             Ok(max)
         } else {
-            Err(TypeError::py_err(format!("Calling max_degree on module that is not finite dimensional module: {}", self.get()?.type_())))
+            Err(TypeError::py_err(format!(
+                "Calling max_degree on module that is not finite dimensional module: {}",
+                self.get()?.type_()
+            )))
         }
     }
 }
