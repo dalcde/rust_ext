@@ -15,9 +15,10 @@ rust_ext = { path = "../libraries/" }
 fp = { path = "../libraries/fp" }
 bivec = { path = "../libraries/bivec" }
 serde_json = "1.0.0"
+# This is used by pyo3 anyway so we are not really having an additional dependency
 paste = "0.1"
 
 [dependencies.pyo3]
 git = "https://github.com/PyO3/pyo3"
-rev = "31156671812579d01603d0765f3df6dd6f03e270"
+rev = "74b22eb651aac14cd64524219943b77cf7e700ac"
 features = ["extension-module"]

@@ -38,7 +38,7 @@ impl AnyModule {
         Ok(())
     }
 
-    fn sum(&self, other: PyRef<AnyModule>) -> PyResult<Self> {
+    fn sum(&self, other: &AnyModule) -> PyResult<Self> {
         let other = other.get()?;
         let inner = self.get()?;
         let min_degree = std::cmp::min(inner.min_degree(), other.min_degree());
@@ -52,7 +52,7 @@ impl AnyModule {
         })
     }
 
-    fn tensor(&self, other: PyRef<AnyModule>) -> PyResult<Self> {
+    fn tensor(&self, other: &AnyModule) -> PyResult<Self> {
         Ok(Self {
             inner: Some(Arc::new(Arc::new(TensorModule::new(
                 self.get()?,
@@ -142,8 +142,8 @@ impl FiniteModule {
         Ok(self.get()?.dimension(degree))
     }
 
-    fn resolve(self_: PyRef<Self>) -> PyResult<Resolution> {
-        Resolution::from_module(self_)
+    fn resolve(&self) -> PyResult<Resolution> {
+        Resolution::from_module(self)
     }
 
     fn element_name(&self, t: i32, idx: usize) -> PyResult<String> {

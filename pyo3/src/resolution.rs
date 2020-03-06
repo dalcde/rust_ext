@@ -17,7 +17,7 @@ wrapper_type! {
 #[pymethods]
 impl Resolution {
     #[staticmethod]
-    pub fn from_module(module: PyRef<FiniteModule>) -> PyResult<Self> {
+    pub fn from_module(module: &FiniteModule) -> PyResult<Self> {
         let chain_complex = Arc::new(FiniteChainComplex::ccdz(module.get()?));
         let resolution = Arc::new(RwLock::new(ResolutionRust::new(chain_complex, None, None)));
         Ok(Self::from_inner(resolution))
@@ -31,6 +31,13 @@ impl Resolution {
     fn resolve_through_degree(self_: PyRef<Self>, degree: i32) -> PyResult<PyRef<Self>> {
         self_.get()?.read().unwrap().resolve_through_degree(degree);
         Ok(self_)
+    }
+
+    fn dim(&self, s: u32, t: i32) -> PyResult<usize> {
+        let self_ = self.get()?;
+        let self_ = self_.read().unwrap();
+        self_.resolve_through_bidegree(s, t);
+        Ok(self_.module(s).number_of_gens_in_degree(t))
     }
 
     fn graded_dimension_string(&self) -> PyResult<String> {

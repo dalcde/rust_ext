@@ -25,11 +25,7 @@ wrapper_type! {
 
 #[pymethods]
 impl FiniteModuleHomomorphism {
-    fn lift(
-        &self,
-        source: PyRef<Resolution>,
-        target: PyRef<Resolution>,
-    ) -> PyResult<ResolutionHomomorphism> {
+    fn lift(&self, source: &Resolution, target: &Resolution) -> PyResult<ResolutionHomomorphism> {
         // TODO: check correct module
 
         let source = source.get()?;
@@ -80,11 +76,7 @@ impl FDModuleHomomorphismBuilder {
 #[pymethods]
 impl FDModuleHomomorphismBuilder {
     #[new]
-    fn new(
-        source: PyRef<FiniteModule>,
-        target: PyRef<FiniteModule>,
-        degree_shift: i32,
-    ) -> PyResult<Self> {
+    fn new(source: &FiniteModule, target: &FiniteModule, degree_shift: i32) -> PyResult<Self> {
         if source.get()?.is_fd_module() && target.get()?.is_fd_module() {
             Ok(Self {
                 inner: BoundedModuleHomomorphism::new(source.get()?, target.get()?, degree_shift),
@@ -161,7 +153,7 @@ impl ResolutionHomomorphism {
             .resolve_through_bidegree(s, t);
         inner.extend(s, t);
 
-        let target = inner.source.upgrade().unwrap(); // This is always safe because we own a strong copy of the source and target
+        let target = inner.target.upgrade().unwrap(); // This is always safe because we own a strong copy of the source and target
         let source = inner.source.upgrade().unwrap();
 
         let target_dim = target.module(s).number_of_gens_in_degree(t);
